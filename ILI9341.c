@@ -171,33 +171,54 @@ void Display_init(void)
 
 void Display_fill_screen(RGB_pixel_t color)
 {
-	dspi_transfer_t masterXfer;
-	uint8_t x_limits[] = {0x00, 0x50, 0x00, 0xF0};
-	uint8_t y_limits[] = {0x00, 0x3C, 0x00, 0xB4};
-	uint8_t pixels[2] = {(color.red << 3) | (color.green >> 3), ((color.green & 0x3) << 5) | (color.blue)};
-	uint32_t i = 0;
-
 	// Set AddrWindow from 0,0 to 319,239 (whole screen):
+	Display_set_window(0, 0, 320, 240);
+
+	// Send 320*240 times the color info:
+	Display_send_pixels(color, 115200);
+}
+
+
+/*
+ *
+ */
+void Display_set_window(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h)
+{
+	uint8_t x_limits[2] = {0};
+	uint8_t y_limits[2] = {0};
+	uint16_t x2 = 0;
+	uint16_t y2 = 0;
+
+	x2 = x1 + w;
+	y2 = y1 + h;
+
+	x_limits[0] = (uint8_t)((x1 & 0xFF00) >> 8);
+	x_limits[1] = (uint8_t)(x1 & 0xFF);
+	x_limits[2] = (uint8_t)((x2 & 0xFF00) >> 8);
+	x_limits[3] = (uint8_t)(x2 & 0xFF);
+
+	y_limits[0] = (uint8_t)((y1 & 0xFF00) >> 8);
+	y_limits[1] = (uint8_t)(y1 & 0xFF);
+	y_limits[2] = (uint8_t)((y2 & 0xFF00) >> 8);
+	y_limits[3] = (uint8_t)(y2 & 0xFF);
+
 	Display_send_command(ILI9341_CASET, y_limits, 4);
 	Display_send_command(ILI9341_PASET, x_limits, 4);
+}
+
+
+/*
+ *
+ */
+void Display_send_pixels(RGB_pixel_t color, uint32_t amount)
+{
+	dspi_transfer_t masterXfer;
+	uint32_t i = 0;
+	uint8_t pixels[2] = {(color.red << 3) | (color.green >> 3), ((color.green & 0x3) << 5) | (color.blue)};
+
 	Display_send_command(ILI9341_RAMWR, 0, 0);
 
-	// Send 320*240 times the color info in intervals of 50000:
-	for (i=0; i<50000U; i++)
-	{
-		masterXfer.txData      = pixels;
-		masterXfer.rxData      = NULL;
-		masterXfer.dataSize    = 2;
-		masterXfer.configFlags = kDSPI_MasterCtar0 | kDSPI_MasterPcs0 | kDSPI_MasterPcsContinuous;
-		DSPI_MasterTransferBlocking(SPI0, &masterXfer);
-	}
-
-	SDK_DelayAtLeastUs(1000, 21000000U);
-
-	pixels[0] = 0x07;
-	pixels[1] = 0xFF;
-
-	for (i=0; i<19200U; i++)
+	for (i=amount; i>0; i--)
 	{
 		masterXfer.txData      = pixels;
 		masterXfer.rxData      = NULL;

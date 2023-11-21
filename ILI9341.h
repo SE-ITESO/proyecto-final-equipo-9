@@ -51,7 +51,7 @@
 #define SPI_MUX_ALT     kPORT_MuxAlt2
 
 #define DISPLAY_CTAR      kDSPI_Ctar0
-#define DISPLAY_BAUDRATE  2000000U
+#define DISPLAY_BAUDRATE  5000000U
 #define LCD_NANOSEC_DELAY 1000U
 
 #define DISPLAY_CPOL kDSPI_ClockPolarityActiveHigh
@@ -107,5 +107,17 @@ void Display_init(void);
  *
  */
 void Display_fill_screen(RGB_pixel_t color);
+
+
+/*
+ *
+ */
+void Display_set_window(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h);
+
+
+/*
+ *
+ */
+void Display_send_pixels(RGB_pixel_t color, uint32_t amount);
 
 #endif /* ILI9341_H_ */
