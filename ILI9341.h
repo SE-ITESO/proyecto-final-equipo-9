@@ -52,7 +52,7 @@
 
 #define DISPLAY_CTAR      kDSPI_Ctar0
 #define DISPLAY_BAUDRATE  5000000U
-#define LCD_NANOSEC_DELAY 1000U
+#define LCD_NANOSEC_DELAY 100U
 
 #define DISPLAY_CPOL kDSPI_ClockPolarityActiveHigh
 #define DISPLAY_CPHA kDSPI_ClockPhaseFirstEdge

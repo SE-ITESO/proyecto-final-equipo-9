@@ -10,6 +10,7 @@
 //TODO: Include driver libraries
 
 #include "ILI9341.h"
+#include "XPT2046.h"
 
 int main(void)
 {
