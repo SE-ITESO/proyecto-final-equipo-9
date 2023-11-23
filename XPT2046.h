@@ -10,6 +10,8 @@
 #include "fsl_dspi.h"
 #include "fsl_port.h"
 #include "fsl_gpio.h"
+#include "NVIC.h"
+#include "gpio.h"
 #include <stdbool.h>
 
 /*
@@ -23,17 +25,18 @@
 
 #define TOUCH_SPI_PORT   PORTD
 #define TOUCH_CE_PORT    PORTC
-#define TOUCH_IRQ_GPIO   GPIOC
+#define TOUCH_IRQ_GPIO   GPIOB
 
 #define TOUCH_CE_PIN   3
 #define SPI_CLK_PIN    1
 #define SPI_MOSI_PIN   2
-#define TOUCH_IRQ_PIN  0
+#define SPI_MISO_PIN   3
+#define TOUCH_IRQ_PIN  18
 
 #define SPI_MUX_ALT     kPORT_MuxAlt2
 
 #define TOUCH_CTAR      kDSPI_Ctar1
-#define TOUCH_BAUDRATE  5000000U
+#define TOUCH_BAUDRATE  1000000U
 #define NANOSEC_DELAY   100U
 
 #define TOUCH_CPOL  kDSPI_ClockPolarityActiveHigh
@@ -71,6 +74,18 @@ bool Touch_pressed(void);
 /*
  *
  */
+void Touch_clear_irq_flag(void);
+
+
+/*
+ *
+ */
 Coordinate_t Touch_get_coordinates(void);
+
+
+/*
+ *
+ */
+bool Touch_event_threshold(void);
 
 #endif /* XPT2046_H_ */
