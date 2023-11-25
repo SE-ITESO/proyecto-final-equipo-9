@@ -11,7 +11,8 @@
  */
 
 static void Touch_gpio_irq(uint32_t port_flags);
-static uint16_t send_halfduplex_command(uint16_t command);
+static void Touch_debounce(void);
+static uint16_t send_halfduplex_command(uint8_t command);
 static uint16_t smart_average(uint16_t a, uint16_t b, uint16_t c);
 
 /*
@@ -38,6 +39,7 @@ void Touch_config_peripherals(void)
 			kGPIO_DigitalInput,
 			0
 	};
+	pit_config_t pit_config;
 	uint32_t srcClock_Hz;
 
 	CLOCK_SetSimSafeDivs();
@@ -45,6 +47,14 @@ void Touch_config_peripherals(void)
 	CLOCK_EnableClock(TOUCH_SPI_CLOCK);
 	CLOCK_EnableClock(TOUCH_CE_CLOCK);
 	CLOCK_EnableClock(kCLOCK_PortB);
+
+	// PIT config:
+	PIT_GetDefaultConfig(&pit_config);
+	PIT_Init(PIT, &pit_config);
+	PIT_SetTimerPeriod(PIT, TOUCH_PIT_CHNL, TOUCH_DELAY);
+	PIT_EnableInterrupts(PIT, TOUCH_PIT_CHNL, kPIT_TimerInterruptEnable);
+	PIT_callback_init(TOUCH_PIT_CHNL, Touch_debounce);
+	NVIC_enable_interrupt_and_priotity(TOUCH_PIT_IRQ, TOUCH_PIT_PRIO);
 
 	// SPI pins:
 	PORT_SetPinMux(TOUCH_CE_PORT,  TOUCH_CE_PIN, SPI_MUX_ALT);
@@ -62,7 +72,7 @@ void Touch_config_peripherals(void)
 	// SPI config:
 	masterConfig.whichCtar 								  = TOUCH_CTAR;
 	masterConfig.ctarConfig.baudRate 					  = TOUCH_BAUDRATE;
-	masterConfig.ctarConfig.bitsPerFrame 				  = 16U;
+	masterConfig.ctarConfig.bitsPerFrame 				  = 8U;
 	masterConfig.ctarConfig.cpol 						  = TOUCH_CPOL;
 	masterConfig.ctarConfig.cpha 						  = TOUCH_CPHA;
 	masterConfig.ctarConfig.direction 					  = kDSPI_MsbFirst;
@@ -115,17 +125,19 @@ Coordinate_t Touch_get_coordinates(void)
 	{
 		y_coord[0] = send_halfduplex_command(0x91);
 		x_coord[0] = send_halfduplex_command(0xD1);
-		y_coord[0] = send_halfduplex_command(0x91);
-		x_coord[1] = send_halfduplex_command(0xD1);
 		y_coord[1] = send_halfduplex_command(0x91);
+		x_coord[1] = send_halfduplex_command(0xD1);
+		y_coord[2] = send_halfduplex_command(0x91);
 		x_coord[2] = send_halfduplex_command(0xD0);
-		y_coord[2] = send_halfduplex_command(0x00);
+		send_halfduplex_command(0x00);
 
+		/*
 		touch_spot.x_position = smart_average(x_coord[0], x_coord[1], x_coord[2]);
 		touch_spot.y_position = smart_average(y_coord[0], y_coord[1], y_coord[2]);
+		*/
+		touch_spot.x_position = (x_coord[0] + x_coord[1] + x_coord[2]) / 3;
+		touch_spot.y_position = (y_coord[0] + y_coord[1] + y_coord[2]) / 3;
 	}
-	// TODO: tie the re-enabling of the interrupt to a PIT
-	PORT_SetPinInterruptConfig(PORTB, TOUCH_IRQ_PIN, kPORT_InterruptFallingEdge);
 	return touch_spot;
 }
 
@@ -161,7 +173,7 @@ bool Touch_event_threshold(void)
 	masterXfer.txData      = (uint8_t *)&command[2];
 	masterXfer.rxData      = (uint8_t *)&z_coord[2];
 	masterXfer.txDataSize  = 1;
-	masterXfer.rxDataSize  = 1;
+	masterXfer.rxDataSize  = 2;
 	masterXfer.configFlags = kDSPI_MasterCtar1 | kDSPI_MasterPcs1 | kDSPI_MasterPcsContinuous;
 	masterXfer.isPcsAssertInTransfer = true;
 	masterXfer.isTransmitFirst       = true;
@@ -186,7 +198,7 @@ static void Touch_gpio_irq(uint32_t port_flags)
 	{
 		g_touch_irq = true;
 		PORT_SetPinInterruptConfig(PORTB, TOUCH_IRQ_PIN, kPORT_InterruptOrDMADisabled);
-		SDK_DelayAtLeastUs(10000, 21000000U);
+		PIT_StartTimer(PIT, TOUCH_PIT_CHNL);
 	}
 }
 
@@ -194,22 +206,32 @@ static void Touch_gpio_irq(uint32_t port_flags)
 /*
  *
  */
-static uint16_t send_halfduplex_command(uint16_t command)
+static void Touch_debounce(void)
+{
+	PIT_StopTimer(PIT, TOUCH_PIT_CHNL);
+	PORT_SetPinInterruptConfig(PORTB, TOUCH_IRQ_PIN, kPORT_InterruptFallingEdge);
+}
+
+
+/*
+ *
+ */
+static uint16_t send_halfduplex_command(uint8_t command)
 {
     dspi_half_duplex_transfer_t masterXfer;
-    uint16_t command_buffer[] = {command};
-    uint16_t rx_buffer[1] = {0};
+    uint8_t command_buffer[] = {command};
+    uint8_t rx_buffer[2] = {0};
 
-	masterXfer.txData      = (uint8_t *)command_buffer;
-	masterXfer.rxData      = (uint8_t *)rx_buffer;
+	masterXfer.txData      = command_buffer;
+	masterXfer.rxData      = rx_buffer;
 	masterXfer.txDataSize  = 1;
-	masterXfer.rxDataSize  = 1;
+	masterXfer.rxDataSize  = 2;
 	masterXfer.configFlags = kDSPI_MasterCtar1 | kDSPI_MasterPcs1 | kDSPI_MasterPcsContinuous;
 	masterXfer.isPcsAssertInTransfer = true;
 	masterXfer.isTransmitFirst       = true;
 	DSPI_MasterHalfDuplexTransferBlocking(SPI0, &masterXfer);
 
-	return rx_buffer[0];
+	return (uint16_t)((rx_buffer[0] << 4) | (rx_buffer[1] >> 4));
 }
 
 

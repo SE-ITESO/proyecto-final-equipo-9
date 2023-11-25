@@ -10,8 +10,10 @@
 #include "fsl_dspi.h"
 #include "fsl_port.h"
 #include "fsl_gpio.h"
+#include "fsl_pit.h"
 #include "NVIC.h"
 #include "gpio.h"
+#include "PIT.h"
 #include <stdbool.h>
 
 /*
@@ -36,11 +38,16 @@
 #define SPI_MUX_ALT     kPORT_MuxAlt2
 
 #define TOUCH_CTAR      kDSPI_Ctar1
-#define TOUCH_BAUDRATE  1000000U
+#define TOUCH_BAUDRATE  2000000U
 #define NANOSEC_DELAY   100U
 
 #define TOUCH_CPOL  kDSPI_ClockPolarityActiveHigh
 #define TOUCH_CPHA  kDSPI_ClockPhaseFirstEdge
+
+#define TOUCH_PIT_CHNL kPIT_Chnl_0
+#define TOUCH_DELAY    USEC_TO_COUNT(5000U, 21000000U)
+#define TOUCH_PIT_IRQ  PIT_CH0_IRQ
+#define TOUCH_PIT_PRIO PRIORITY_6
 
 /*
  * ******************************************************************
