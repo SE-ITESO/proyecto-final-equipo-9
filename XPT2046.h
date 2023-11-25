@@ -55,6 +55,7 @@
  * ******************************************************************
  */
 
+/* Structure that contains the x and y coordinates of a touched spot: */
 typedef struct {
 	uint16_t x_position;
 	uint16_t y_position;
@@ -67,32 +68,35 @@ typedef struct {
  */
 
 /*
- *
+ * @brief: Configures and initializes the peripherals used (SPI, PIT, GPIO)
  */
 void Touch_config_peripherals(void);
 
 
 /*
+ * @brief: Indicates whether the screen has been touched.
  *
+ * @retval: true if the screen has been touched, false otherwise.
  */
 bool Touch_pressed(void);
 
 
 /*
- *
+ * @brief: Sets the value of the flag that indicates whether the screen has
+ *         been touched to false, avoiding multiple responses to the same
+ *         touch. Should be used after Touch_pressed().
  */
 void Touch_clear_irq_flag(void);
 
 
 /*
+ * @brief: When the screen has been touched, returns the screen coordinates
+ *         where it was touched.
+ *         TODO: process these coordinates, since currently the origin is
+ *         at the lower right corner, and the highest point, at the higher left
  *
+ * @retval: structure containing the x and y coordinates of the touched point.
  */
 Coordinate_t Touch_get_coordinates(void);
-
-
-/*
- *
- */
-bool Touch_event_threshold(void);
 
 #endif /* XPT2046_H_ */

@@ -13,7 +13,6 @@
 static void Touch_gpio_irq(uint32_t port_flags);
 static void Touch_debounce(void);
 static uint16_t send_halfduplex_command(uint8_t command);
-static uint16_t smart_average(uint16_t a, uint16_t b, uint16_t c);
 
 /*
  * ******************************************************************
@@ -30,7 +29,7 @@ bool g_touch_irq = false;
  */
 
 /*
- *
+ * @brief: Configures and initializes the peripherals used (SPI, PIT, GPIO)
  */
 void Touch_config_peripherals(void)
 {
@@ -49,8 +48,12 @@ void Touch_config_peripherals(void)
 	CLOCK_EnableClock(kCLOCK_PortB);
 
 	// PIT config:
+	// Initializing PIT multiple times causes errors:
+#ifndef PIT_INITIALIZED
+#define PIT_INITIALIZED
 	PIT_GetDefaultConfig(&pit_config);
 	PIT_Init(PIT, &pit_config);
+#endif
 	PIT_SetTimerPeriod(PIT, TOUCH_PIT_CHNL, TOUCH_DELAY);
 	PIT_EnableInterrupts(PIT, TOUCH_PIT_CHNL, kPIT_TimerInterruptEnable);
 	PIT_callback_init(TOUCH_PIT_CHNL, Touch_debounce);
@@ -62,7 +65,7 @@ void Touch_config_peripherals(void)
 	PORT_SetPinMux(TOUCH_SPI_PORT, SPI_MOSI_PIN, SPI_MUX_ALT);
 	PORT_SetPinMux(TOUCH_SPI_PORT, SPI_MISO_PIN, SPI_MUX_ALT);
 
-	// IRQ pin:
+	// Touch IRQ pin:
 	PORT_SetPinMux(PORTB, TOUCH_IRQ_PIN, kPORT_MuxAsGpio);
 	GPIO_PinInit(TOUCH_IRQ_GPIO, TOUCH_IRQ_PIN, &input_config);
 	PORT_SetPinInterruptConfig(PORTB, TOUCH_IRQ_PIN, kPORT_InterruptFallingEdge);
@@ -89,13 +92,14 @@ void Touch_config_peripherals(void)
 	masterConfig.samplePoint 				= kDSPI_SckToSin0Clock;
 
 	srcClock_Hz = CLOCK_GetFreq(DSPI0_CLK_SRC);
-
 	DSPI_MasterInit(SPI0, &masterConfig, srcClock_Hz);
 }
 
 
 /*
+ * @brief: Indicates whether the screen has been touched.
  *
+ * @retval: true if the screen has been touched, false otherwise.
  */
 bool Touch_pressed(void)
 {
@@ -104,7 +108,9 @@ bool Touch_pressed(void)
 
 
 /*
- *
+ * @brief: Sets the value of the flag that indicates whether the screen has
+ *         been touched to false, avoiding multiple responses to the same
+ *         touch. Should be used after Touch_pressed().
  */
 void Touch_clear_irq_flag(void)
 {
@@ -113,7 +119,12 @@ void Touch_clear_irq_flag(void)
 
 
 /*
+ * @brief: When the screen has been touched, returns the screen coordinates
+ *         where it was touched.
+ *         TODO: process these coordinates, since currently the origin is
+ *         at the lower right corner, and the highest point, at the higher left
  *
+ * @retval: structure containing the x and y coordinates of the touched point.
  */
 Coordinate_t Touch_get_coordinates(void)
 {
@@ -121,67 +132,20 @@ Coordinate_t Touch_get_coordinates(void)
 	uint16_t x_coord[3] = {0};
 	uint16_t y_coord[3] = {0};
 
-	if (Touch_event_threshold())
-	{
-		y_coord[0] = send_halfduplex_command(0x91);
-		x_coord[0] = send_halfduplex_command(0xD1);
-		y_coord[1] = send_halfduplex_command(0x91);
-		x_coord[1] = send_halfduplex_command(0xD1);
-		y_coord[2] = send_halfduplex_command(0x91);
-		x_coord[2] = send_halfduplex_command(0xD0);
-		send_halfduplex_command(0x00);
+	// The command for getting an x-value is 0x91, and 0xD1 for y-value.
+	x_coord[0] = send_halfduplex_command(0x91);
+	y_coord[0] = send_halfduplex_command(0xD1);
+	x_coord[1] = send_halfduplex_command(0x91);
+	y_coord[1] = send_halfduplex_command(0xD1);
+	x_coord[2] = send_halfduplex_command(0x91);
+	// The last command is different in order to enter low-power mode.
+	y_coord[2] = send_halfduplex_command(0xD0);
 
-		/*
-		touch_spot.x_position = smart_average(x_coord[0], x_coord[1], x_coord[2]);
-		touch_spot.y_position = smart_average(y_coord[0], y_coord[1], y_coord[2]);
-		*/
-		touch_spot.x_position = (x_coord[0] + x_coord[1] + x_coord[2]) / 3;
-		touch_spot.y_position = (y_coord[0] + y_coord[1] + y_coord[2]) / 3;
-	}
+	// Gets an average of the 3 points obtained.
+	touch_spot.x_position = (x_coord[0] + x_coord[1] + x_coord[2]) / 3;
+	touch_spot.y_position = (y_coord[0] + y_coord[1] + y_coord[2]) / 3;
+
 	return touch_spot;
-}
-
-
-/*
- *
- */
-bool Touch_event_threshold(void)
-{
-    dspi_half_duplex_transfer_t masterXfer;
-    uint16_t command[3] = {0xB1, 0xC1, 0x91};
-    uint16_t z_coord[3] = {0};
-    uint16_t z_value = 0;
-
-	masterXfer.txData      = (uint8_t *)&command[0];
-	masterXfer.rxData      = (uint8_t *)&z_coord[0];
-	masterXfer.txDataSize  = 1;
-	masterXfer.rxDataSize  = 1;
-	masterXfer.configFlags = kDSPI_MasterCtar1 | kDSPI_MasterPcs1 | kDSPI_MasterPcsContinuous;
-	masterXfer.isPcsAssertInTransfer = true;
-	masterXfer.isTransmitFirst       = true;
-	DSPI_MasterHalfDuplexTransferBlocking(SPI0, &masterXfer);
-
-	masterXfer.txData      = (uint8_t *)&command[1];
-	masterXfer.rxData      = (uint8_t *)&z_coord[1];
-	masterXfer.txDataSize  = 1;
-	masterXfer.rxDataSize  = 1;
-	masterXfer.configFlags = kDSPI_MasterCtar1 | kDSPI_MasterPcs1 | kDSPI_MasterPcsContinuous;
-	masterXfer.isPcsAssertInTransfer = true;
-	masterXfer.isTransmitFirst       = true;
-	DSPI_MasterHalfDuplexTransferBlocking(SPI0, &masterXfer);
-
-	masterXfer.txData      = (uint8_t *)&command[2];
-	masterXfer.rxData      = (uint8_t *)&z_coord[2];
-	masterXfer.txDataSize  = 1;
-	masterXfer.rxDataSize  = 2;
-	masterXfer.configFlags = kDSPI_MasterCtar1 | kDSPI_MasterPcs1 | kDSPI_MasterPcsContinuous;
-	masterXfer.isPcsAssertInTransfer = true;
-	masterXfer.isTransmitFirst       = true;
-	DSPI_MasterHalfDuplexTransferBlocking(SPI0, &masterXfer);
-
-	z_value = (z_coord[1] >> 3) - (z_coord[2] >> 3) + 4095U;
-
-	return (z_value > 300);
 }
 
 
@@ -190,13 +154,19 @@ bool Touch_event_threshold(void)
  */
 
 /*
+ * @brief: Used as a callback function for the touch IRQ port. Sets the IRQ
+ *         flag and disables the port's interrupt for debouncing.
  *
+ * @param: port_flags Determines which pin in the port triggered the interrupt
  */
 static void Touch_gpio_irq(uint32_t port_flags)
 {
+	// Only acts if the touch IRQ pin triggered the interrupt:
 	if (port_flags & (1 << TOUCH_IRQ_PIN))
 	{
+		// Set the global IRQ flag:
 		g_touch_irq = true;
+		// Disabled the port's interrupt for 5 ms as debouncing.
 		PORT_SetPinInterruptConfig(PORTB, TOUCH_IRQ_PIN, kPORT_InterruptOrDMADisabled);
 		PIT_StartTimer(PIT, TOUCH_PIT_CHNL);
 	}
@@ -204,7 +174,8 @@ static void Touch_gpio_irq(uint32_t port_flags)
 
 
 /*
- *
+ * @brief: Function used as a PIT callback function. Enables the touch IRQ
+ *         port's interrupt again.
  */
 static void Touch_debounce(void)
 {
@@ -214,7 +185,12 @@ static void Touch_debounce(void)
 
 
 /*
+ * @brief: Function with internal purposes for communicating with the XPT2046
+ *         controller. Sends a 1-byte command and receives a 12-bit data.
  *
+ * @param: command 1-byte command to be sent to the touch controller.
+ *
+ * @retval: returns the 12-bit response from the controller.
  */
 static uint16_t send_halfduplex_command(uint8_t command)
 {
@@ -231,68 +207,8 @@ static uint16_t send_halfduplex_command(uint8_t command)
 	masterXfer.isTransmitFirst       = true;
 	DSPI_MasterHalfDuplexTransferBlocking(SPI0, &masterXfer);
 
+	// Concatenates the two bytes into their corresponding 12-bit value:
 	return (uint16_t)((rx_buffer[0] << 4) | (rx_buffer[1] >> 4));
 }
 
-
-/*
- *
- */
-static uint16_t smart_average(uint16_t a, uint16_t b, uint16_t c)
-{
-	uint16_t d_ab = 0;
-	uint16_t d_ac = 0;
-	uint16_t d_bc = 0;
-	uint16_t avg  = 0;
-
-	if (a > b)
-	{
-		d_ab = a - b;
-	}
-	else
-	{
-		d_ab = b - a;
-	}
-	if (a > c)
-	{
-		d_ac = a - c;
-	}
-	else
-	{
-		d_ac = c - a;
-	}
-	if (c > b)
-	{
-		d_bc = c - b;
-	}
-	else
-	{
-		d_bc = b - c;
-	}
-
-	if (d_ab < d_ac)
-	{
-		if (d_ab < d_bc)
-		{
-			avg = (a + b) / 2;
-		}
-		else
-		{
-			avg = (c + b) / 2;
-		}
-	}
-	else
-	{
-		if (d_ac < d_bc)
-		{
-			avg = (a + c) / 2;
-		}
-		else
-		{
-			avg = (c + b) / 2;
-		}
-	}
-
-	return avg;
-}
 
