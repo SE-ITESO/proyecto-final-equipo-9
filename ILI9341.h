@@ -72,6 +72,7 @@
  * ******************************************************************
  */
 
+/* Contains the 16-bit value for a color: */
 typedef struct {
 	uint8_t red   : 5;
 	uint8_t green : 6;
@@ -86,38 +87,56 @@ typedef struct {
  */
 
 /*
- *
+ * @brief: Configures and initializes the peripherals used (SPI, GPIO)
  */
 void Display_config_peripherals(void);
 
 
 /*
+ * @brief: Sends a command with its corresponding arguments to the screen.
+ *         Controls the value of the DC pin during communication.
  *
+ * @param: command 8-bit command to send.
+ * @param: args    Pointer to the arguments of the command.
+ * @param: arg_num Number of arguments to be sent.
  */
 void Display_send_command(uint8_t command, uint8_t * args, uint8_t arg_num);
 
 
 /*
- *
+ * @brief: Sends the initialization sequence commands and arguments to the
+ *         ILI9341 display.
  */
 void Display_init(void);
 
 
 /*
+ * @brief: Sets the entire display's screen to the desired color.
  *
+ * @param: color Structure where the desired color is saved.
  */
 void Display_fill_screen(RGB_pixel_t color);
 
 
 /*
+ * @brief: Sends the "setAddressWindow" command, indicating the area of the
+ *         display where the pixels that are written next should be placed.
  *
+ * @param: x1 Starting (left-most) x-coordinate of the window.
+ * @param: y1 Starting (top-most) y-coordinate of the window.
+ * @param: w  Width in pixels of the window.
+ * @param: h  Height in pixels of the window.
  */
 void Display_set_window(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h);
 
 
 /*
+ * @brief: Prints the indicated amount of pixels of the given color in the
+ *         display. Assumes the address window has already been set.
  *
+ * @param: color  Color to be printed on screen.
+ * @param: amount Number of pixels to be painted on the display.
  */
-void Display_send_pixels(RGB_pixel_t color, uint32_t amount);
+void Display_paint_color(RGB_pixel_t color, uint32_t amount);
 
 #endif /* ILI9341_H_ */

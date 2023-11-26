@@ -30,7 +30,7 @@ int main(void)
 	Display_fill_screen(black);
 
 	Display_set_window(80, 120, 80, 120);
-	Display_send_pixels(gray, 14400U);
+	Display_paint_color(gray, 14400U);
 
     while(1)
     {

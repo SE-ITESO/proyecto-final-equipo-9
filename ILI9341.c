@@ -42,6 +42,9 @@ static const uint8_t g_init_sequence[INIT_SEQ_SIZE] = {
  * ******************************************************************
  */
 
+/*
+ * @brief: Configures and initializes the peripherals used (SPI, GPIO)
+ */
 void Display_config_peripherals(void)
 {
 	dspi_master_config_t masterConfig;
@@ -99,6 +102,14 @@ void Display_config_peripherals(void)
 }
 
 
+/*
+ * @brief: Sends a command with its corresponding arguments to the screen.
+ *         Controls the value of the DC pin during communication.
+ *
+ * @param: command 8-bit command to send.
+ * @param: args    Pointer to the arguments of the command.
+ * @param: arg_num Number of arguments to be sent.
+ */
 void Display_send_command(uint8_t command, uint8_t * args, uint8_t arg_num)
 {
 	dspi_transfer_t masterXfer;
@@ -129,6 +140,10 @@ void Display_send_command(uint8_t command, uint8_t * args, uint8_t arg_num)
 }
 
 
+/*
+ * @brief: Sends the initialization sequence commands and arguments to the
+ *         ILI9341 display.
+ */
 void Display_init(void)
 {
 	dspi_transfer_t masterXfer;
@@ -169,18 +184,29 @@ void Display_init(void)
 }
 
 
+/*
+ * @brief: Sets the entire display's screen to the desired color.
+ *
+ * @param: color Structure where the desired color is saved.
+ */
 void Display_fill_screen(RGB_pixel_t color)
 {
 	// Set AddrWindow from 0,0 to 319,239 (whole screen):
 	Display_set_window(0, 0, 320, 240);
 
 	// Send 320*240 times the color info:
-	Display_send_pixels(color, 115200);
+	Display_paint_color(color, 115200);
 }
 
 
 /*
+ * @brief: Sends the "setAddressWindow" command, indicating the area of the
+ *         display where the pixels that are written next should be placed.
  *
+ * @param: x1 Starting (left-most) x-coordinate of the window.
+ * @param: y1 Starting (top-most) y-coordinate of the window.
+ * @param: w  Width in pixels of the window.
+ * @param: h  Height in pixels of the window.
  */
 void Display_set_window(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h)
 {
@@ -189,8 +215,8 @@ void Display_set_window(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h)
 	uint16_t x2 = 0;
 	uint16_t y2 = 0;
 
-	x2 = x1 + w;
-	y2 = y1 + h;
+	x2 = x1 + w - 1;
+	y2 = y1 + h - 1;
 
 	x_limits[0] = (uint8_t)((x1 & 0xFF00) >> 8);
 	x_limits[1] = (uint8_t)(x1 & 0xFF);
@@ -210,11 +236,13 @@ void Display_set_window(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h)
 /*
  *
  */
-void Display_send_pixels(RGB_pixel_t color, uint32_t amount)
+void Display_paint_color(RGB_pixel_t color, uint32_t amount)
 {
 	dspi_transfer_t masterXfer;
 	uint32_t i = 0;
-	uint8_t pixels[2] = {(color.red << 3) | (color.green >> 3), ((color.green & 0x3) << 5) | (color.blue)};
+	uint8_t pixels[2];
+	pixels[0] = (color.red << 3) | (color.green >> 3);
+	pixels[1] = ((color.green & 0x3) << 5) | (color.blue);
 
 	Display_send_command(ILI9341_RAMWR, 0, 0);
 
