@@ -1,8 +1,11 @@
 /*
- * ftm_freq.c
+ * @file     ftm_freq.c
  *
- *  Created on: 17 nov 2023
- *      Author: JVillanueva
+ * @Authors  Juan Pablo Villanueva
+ *           Jose Angel Gonzalez
+ *
+ * @brief    This source file contains the functions necessary to
+ *           use FTM in input capture mode, to measure frequencies
  */
 
 #include "ftm_freq.h"

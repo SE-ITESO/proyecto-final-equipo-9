@@ -18,16 +18,26 @@
 #include "NVIC.h"
 #include "PIT.h"
 #include "MPU6050.h"
+#include <stdint.h>
+#include <math.h>
+
 
 
 Acc_t aceleracion = {0};
 Gyro_t giroscopio = {0};
 
+uint32_t time_elapsed = 0;
+uint32_t time = 1000;
+uint32_t counter = 0;
+
+float angle = 0.0f;
+
 int main(void)
 {
+
 	MPU6050_init();
-	aceleracion = MPU6050_read_acc();
-	giroscopio = MPU6050_read_gyro();
+
+	angle = MPU6050_get_angle();
 
 	while(1)
 	{
