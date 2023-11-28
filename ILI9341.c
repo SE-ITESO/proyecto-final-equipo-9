@@ -1,5 +1,12 @@
 /*
+ * @file     ILI9341.c
  *
+ * @Authors  Juan Pablo Villanueva
+ *           Jose Angel Gonzalez
+ *
+ * @brief    Source file containing the code for the functions related to the
+ *           displaying of images on the ILI9341 display, as well as its
+ *           initialization.
  */
 
 #include "ILI9341.h"
@@ -192,7 +199,7 @@ void Display_init(void)
 void Display_fill_screen(RGB_pixel_t color)
 {
 	// Set AddrWindow from 0,0 to 319,239 (whole screen):
-	Display_set_window(0, 0, 320, 240);
+	Display_set_window(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	// Send 320*240 times the color info:
 	Display_paint_color(color, 115200);

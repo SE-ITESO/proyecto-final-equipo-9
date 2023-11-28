@@ -1,5 +1,12 @@
 /*
+ * @file     XPT2046.c
  *
+ * @Authors  Juan Pablo Villanueva
+ *           Jose Angel Gonzalez
+ *
+ * @brief    Source file containing the function code related to the use
+ *           of the XPT2046 controller, including initialization, detecting a
+ *           touch input, and calculating said input's coordinates.
  */
 
 #include "XPT2046.h"

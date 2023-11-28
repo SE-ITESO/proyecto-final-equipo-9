@@ -1,5 +1,11 @@
 /*
+ * @file     ILI9341.h
  *
+ * @Authors  Juan Pablo Villanueva
+ *           Jose Angel Gonzalez
+ *
+ * @brief    Header file dedicated to the ILI9341 controller, which is in
+ *           charge of displaying the images themselves on the device's screen.
  */
 
 #ifndef ILI9341_H_
@@ -65,6 +71,9 @@
 #define ILI9341_CASET 0x2A // Column Address Set
 #define ILI9341_PASET 0x2B // Page Address Set
 #define ILI9341_RAMWR 0x2C // Memory Write
+
+#define SCREEN_WIDTH  320
+#define SCREEN_HEIGHT 240
 
 /*
  * ******************************************************************

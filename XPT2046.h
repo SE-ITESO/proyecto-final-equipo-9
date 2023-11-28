@@ -1,5 +1,12 @@
 /*
+ * @file     XPT2046.h
  *
+ * @Authors  Juan Pablo Villanueva
+ *           Jose Angel Gonzalez
+ *
+ * @brief    Header file containing the prototype functions related to the use
+ *           of the XPT2046 controller, which is in charge of detecting touch
+ *           inputs on the display.
  */
 
 #ifndef XPT2046_H_

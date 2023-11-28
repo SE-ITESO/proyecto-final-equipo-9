@@ -9,8 +9,7 @@
 
 //TODO: Include driver libraries
 
-#include "ILI9341.h"
-#include "XPT2046.h"
+#include "graphic_interface.h"
 
 int main(void)
 {
@@ -23,14 +22,14 @@ int main(void)
 
 	uint32_t counter = 0;
 
-	Display_config_peripherals();
-	Touch_config_peripherals();
-	Display_init();
+	GUI_init();
 
 	Display_fill_screen(black);
 
-	Display_set_window(80, 120, 80, 120);
-	Display_paint_color(gray, 14400U);
+	GUI_set_cursor(80, 60, MediumFont);
+	Display_paint_color(gray, 162);
+	Display_paint_color(black, 162);
+	Display_paint_color(gray, 162);
 
     while(1)
     {
