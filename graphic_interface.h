@@ -86,4 +86,10 @@ void GUI_write_string(screen_message_t * msg);
  */
 void GUI_create_button(button_t * btn_info);
 
+
+/*
+ *
+ */
+bool GUI_button_pressed(button_t * btn_info);
+
 #endif /* GRAPHIC_INTERFACE_H_ */
