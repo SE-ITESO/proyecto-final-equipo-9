@@ -14,25 +14,17 @@
 int main(void)
 {
 	// TODO: execute configuration functions
-
+	button_t boton1 = {
+			{"SIMON", 5},
+			120, 160,
+			94, 32
+	};
 	Coordinate_t pressed_spot = {0};
-
 	uint32_t counter = 0;
 
 	GUI_init();
 
-	GUI_set_cursor(80, 60);
-	GUI_write_char('U');
-	GUI_write_char('V');
-	GUI_write_char(':');
-	GUI_write_char('1');
-	GUI_write_char('.');
-	GUI_write_char('2');
-	GUI_write_char('/');
-	GUI_write_char(' ');
-	GUI_write_char('E');
-	GUI_write_char('X');
-	GUI_write_char('E');
+	GUI_create_button(&boton1);
 
     while(1)
     {

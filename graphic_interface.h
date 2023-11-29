@@ -37,9 +37,16 @@
 typedef struct {
 	uint8_t * message;
 	uint32_t msg_size;
-	uint8_t font_size;
 } screen_message_t;
 
+/* */
+typedef struct {
+	screen_message_t btn_msg;
+	uint16_t x;
+	uint16_t y;
+	uint16_t w;
+	uint16_t h;
+} button_t;
 
 /*
  * ******************************************************************
@@ -66,5 +73,17 @@ void GUI_set_cursor(uint16_t x, uint16_t y);
  *
  */
 void GUI_write_char(uint8_t c);
+
+
+/*
+ *
+ */
+void GUI_write_string(screen_message_t * msg);
+
+
+/*
+ *
+ */
+void GUI_create_button(button_t * btn_info);
 
 #endif /* GRAPHIC_INTERFACE_H_ */

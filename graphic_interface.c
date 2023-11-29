@@ -528,6 +528,21 @@ uint8_t g_point_char[CHAR_SIZE] = {
 		0,0,0,0,0,0,0,0
 };
 
+uint8_t g_deg_char[CHAR_SIZE] = {
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		1,1,1,0,0,0,0,0,
+		1,1,1,0,0,0,0,0,
+		1,0,1,0,0,0,0,0,
+		1,0,1,0,0,0,0,0,
+		1,1,1,0,0,0,0,0,
+		1,1,1,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0
+};
+
 uint8_t g_blank_char[CHAR_SIZE] = {0};
 
 uint8_t * g_char_decode[CHAR_SIZE] = {
@@ -601,6 +616,10 @@ void GUI_write_char(uint8_t c)
 	{
 		char_array = g_slash_char;
 	}
+	else if ('^' == c)
+	{
+		char_array = g_deg_char;
+	}
 	else
 	{
 		char_array = g_blank_char;
@@ -618,4 +637,30 @@ void GUI_write_char(uint8_t c)
 			Display_paint_color(gray, 3);
 		}
 	}
+}
+
+
+/*
+ *
+ */
+void GUI_write_string(screen_message_t * msg)
+{
+	uint32_t i = 0;
+	for (i=0; i<msg->msg_size; i++)
+	{
+		GUI_write_char(msg->message[i]);
+	}
+}
+
+
+/*
+ *
+ */
+void GUI_create_button(button_t * btn_info)
+{
+	RGB_pixel_t gray = {0x0F, 0x1F, 0x0F};
+	Display_set_window(btn_info->x, btn_info->y, btn_info->w, btn_info->h);
+	Display_paint_color(gray, (btn_info->w * btn_info->h * 3) / 2);
+	GUI_set_cursor(btn_info->x + 12, btn_info->y + 8);
+	GUI_write_string(&btn_info->btn_msg);
 }
