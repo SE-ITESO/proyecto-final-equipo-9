@@ -658,9 +658,39 @@ void GUI_write_string(screen_message_t * msg)
  */
 void GUI_create_button(button_t * btn_info)
 {
-	RGB_pixel_t gray = {0x0F, 0x1F, 0x0F};
+	RGB_pixel_t gray = {0x07, 0x0F, 0x07};
 	Display_set_window(btn_info->x, btn_info->y, btn_info->w, btn_info->h);
 	Display_paint_color(gray, (btn_info->w * btn_info->h * 3) / 2);
 	GUI_set_cursor(btn_info->x + 12, btn_info->y + 8);
 	GUI_write_string(&btn_info->btn_msg);
+}
+
+
+/*
+ *
+ */
+bool GUI_button_pressed(button_t * btn_info)
+{
+	Coordinate_t pressed_spot = {0};
+	uint16_t x1_btn = btn_info->x - 24;
+	uint16_t x2_btn = btn_info->x + btn_info->w + 24;
+	uint16_t y1_btn = btn_info->y - 24;
+	uint16_t y2_btn = btn_info->y + btn_info->h + 24;
+	bool pressed = false;
+
+	if (Touch_pressed())
+	{
+		Touch_clear_irq_flag();
+		pressed_spot = Touch_get_coordinates();
+
+		if ((pressed_spot.x_position >= x1_btn) && (pressed_spot.x_position <= x2_btn))
+		{
+			if ((pressed_spot.y_position >= y1_btn) && (pressed_spot.y_position <= y2_btn))
+			{
+				pressed = true;
+			}
+		}
+	}
+
+	return pressed;
 }

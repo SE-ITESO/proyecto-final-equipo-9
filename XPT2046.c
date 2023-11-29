@@ -128,8 +128,6 @@ void Touch_clear_irq_flag(void)
 /*
  * @brief: When the screen has been touched, returns the screen coordinates
  *         where it was touched.
- *         TODO: process these coordinates, since currently the origin is
- *         at the lower right corner, and the highest point, at the higher left
  *
  * @retval: structure containing the x and y coordinates of the touched point.
  */
@@ -138,8 +136,11 @@ Coordinate_t Touch_get_coordinates(void)
 	Coordinate_t touch_spot = {0};
 	uint16_t x_coord[3] = {0};
 	uint16_t y_coord[3] = {0};
+	uint16_t x_rectified = 0;
+	uint16_t y_rectified = 0;
 
 	// The command for getting an x-value is 0x91, and 0xD1 for y-value.
+	x_coord[0] = send_halfduplex_command(0x91);
 	x_coord[0] = send_halfduplex_command(0x91);
 	y_coord[0] = send_halfduplex_command(0xD1);
 	x_coord[1] = send_halfduplex_command(0x91);
@@ -149,8 +150,17 @@ Coordinate_t Touch_get_coordinates(void)
 	y_coord[2] = send_halfduplex_command(0xD0);
 
 	// Gets an average of the 3 points obtained.
-	touch_spot.x_position = (x_coord[0] + x_coord[1] + x_coord[2]) / 3;
-	touch_spot.y_position = (y_coord[0] + y_coord[1] + y_coord[2]) / 3;
+	x_rectified = (x_coord[0] + x_coord[1] + x_coord[2]) / 3;
+	y_rectified = (y_coord[0] + y_coord[1] + y_coord[2]) / 3;
+
+	// Calculate coordinates considering the origin at the top left corner:
+	if (x_rectified > 2000) x_rectified = 2000;
+	if (y_rectified > 1600) y_rectified = 1600;
+	x_rectified = (2000 - x_rectified) / 5;
+	y_rectified = (1600 - y_rectified) / 5;
+
+	touch_spot.x_position = x_rectified;
+	touch_spot.y_position = y_rectified;
 
 	return touch_spot;
 }
