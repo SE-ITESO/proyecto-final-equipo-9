@@ -15,21 +15,24 @@ int main(void)
 {
 	// TODO: execute configuration functions
 
-	RGB_pixel_t gray = {0x0F, 0x1F, 0x0F};
-	RGB_pixel_t black = {0x00, 0x00, 0x00};
-
 	Coordinate_t pressed_spot = {0};
 
 	uint32_t counter = 0;
 
 	GUI_init();
 
-	Display_fill_screen(black);
-
-	GUI_set_cursor(80, 60, MediumFont);
-	Display_paint_color(gray, 162);
-	Display_paint_color(black, 162);
-	Display_paint_color(gray, 162);
+	GUI_set_cursor(80, 60);
+	GUI_write_char('U');
+	GUI_write_char('V');
+	GUI_write_char(':');
+	GUI_write_char('1');
+	GUI_write_char('.');
+	GUI_write_char('2');
+	GUI_write_char('/');
+	GUI_write_char(' ');
+	GUI_write_char('E');
+	GUI_write_char('X');
+	GUI_write_char('E');
 
     while(1)
     {

@@ -21,6 +21,18 @@
  * ******************************************************************
  */
 
+#define CHAR_HEIGHT  16
+#define CHAR_PIXELS  288
+#define CHAR_SIZE    96
+
+
+
+/*
+ * ******************************************************************
+ * Definitions:
+ * ******************************************************************
+ */
+
 /* Structure used when writing a message on the screen: */
 typedef struct {
 	uint8_t * message;
@@ -28,12 +40,6 @@ typedef struct {
 	uint8_t font_size;
 } screen_message_t;
 
-/* Enum used to limit the possible font sizes: */
-typedef enum {
-	SmallFont,
-	MediumFont,
-	BigFont
-} font_size_t;
 
 /*
  * ******************************************************************
@@ -53,6 +59,12 @@ void GUI_init(void);
  *         around the screen), marking the place where the next message will
  *         be written.
  */
-void GUI_set_cursor(uint16_t x, uint16_t y, font_size_t font_size);
+void GUI_set_cursor(uint16_t x, uint16_t y);
+
+
+/*
+ *
+ */
+void GUI_write_char(uint8_t c);
 
 #endif /* GRAPHIC_INTERFACE_H_ */

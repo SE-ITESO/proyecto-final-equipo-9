@@ -237,6 +237,8 @@ void Display_set_window(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h)
 
 	Display_send_command(ILI9341_CASET, y_limits, 4);
 	Display_send_command(ILI9341_PASET, x_limits, 4);
+
+	Display_send_command(ILI9341_RAMWR, 0, 0);
 }
 
 
@@ -250,8 +252,6 @@ void Display_paint_color(RGB_pixel_t color, uint32_t amount)
 	uint8_t pixels[2];
 	pixels[0] = (color.red << 3) | (color.green >> 3);
 	pixels[1] = ((color.green & 0x3) << 5) | (color.blue);
-
-	Display_send_command(ILI9341_RAMWR, 0, 0);
 
 	for (i=amount; i>0; i--)
 	{
