@@ -10,6 +10,7 @@
 //TODO: Include driver libraries
 
 #include "graphic_interface.h"
+#include "bicycle.h"
 
 int main(void)
 {
@@ -23,8 +24,8 @@ int main(void)
 	uint32_t counter = 0;
 
 	GUI_init();
+	bicycle_main_screen();
 
-	GUI_create_button(&boton1);
 
     while(1)
     {
