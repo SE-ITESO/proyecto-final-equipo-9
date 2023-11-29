@@ -20,6 +20,7 @@
 #include "MPU6050.h"
 #include <stdint.h>
 #include <math.h>
+#include "ftm_speed.h"
 
 
 
@@ -34,13 +35,25 @@ float angle = 0.0f;
 
 int main(void)
 {
-
+/*
 	MPU6050_init();
 
 	angle = MPU6050_get_angle();
+*/
+
+	ftm_speed_init();
+
+	short int i = 0;
+
+	for(i=0; i < 48; i+=2)
+	{
+		ftm_speed_update(i);
+		SDK_DelayAtLeastUs(1000000, 21000000);
+	}
 
 	while(1)
 	{
+
 
 	}
 

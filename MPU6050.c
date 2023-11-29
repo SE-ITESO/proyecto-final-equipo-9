@@ -42,6 +42,7 @@ float pot(float x,uint32_t expo)
 /*
  * @brief: Arctangent function, based on a series of approximations
  */
+
 float arctan(float x)
 {
 	float result = 0.0f;
