@@ -35,12 +35,6 @@ int main(void)
     	{
     		counter++;
     	}
-    	else if (Touch_pressed())
-    	{
-    		Touch_clear_irq_flag();
-    		pressed_spot = Touch_get_coordinates();
-    		counter++;
-    	}
     }
     return 0 ;
 }
