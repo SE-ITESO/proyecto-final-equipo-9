@@ -7,18 +7,13 @@
  * @brief    Application entry point.
  */
 
-//TODO: Include driver libraries
-
-#include "graphic_interface.h"
 #include "bicycle.h"
 
 int main(void)
 {
-
-
 	bicyclye_init_modules();
 
-	while(1)
+	while (true)
 	{
 		bicycle_update_FSM();
 	}

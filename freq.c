@@ -28,11 +28,7 @@ void capture_values(uint32_t flags)
 void init_freq(void)
 {
 	// PIT config:
-	pit_config_t pit_config;
-	PIT_GetDefaultConfig(&pit_config);
-	PIT_Init(PIT, &pit_config);
 	PIT_SetTimerPeriod(PIT, kPIT_Chnl_3, 0xFFFFFFFF);
-
 
 	CLOCK_EnableClock(kCLOCK_PortC);
 	const port_pin_config_t input_config = {
@@ -60,7 +56,11 @@ void init_freq(void)
 
 float freq_get_freq(void)
 {
-	float frequency = 10500000.0f;
-	frequency /= g_pit_period;
+	float frequency = 0.0f;
+	if (g_pit_period)
+	{
+		frequency = 10500000.0f / g_pit_period;
+	}
+
 	return frequency;
 }

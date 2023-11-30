@@ -10,12 +10,12 @@
 #include "rtc_mod.h"
 #include "freq.h"
 
-#define WHEEL       1.95f
+#define WHEEL       2.075f
 
-typedef enum{
+typedef enum {
 	DataState,
 	RecordState,
-}state_t;
+} state_t;
 
 void display_data(void);
 
