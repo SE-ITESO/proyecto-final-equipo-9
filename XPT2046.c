@@ -55,12 +55,8 @@ void Touch_config_peripherals(void)
 	CLOCK_EnableClock(kCLOCK_PortB);
 
 	// PIT config:
-	// Initializing PIT multiple times causes errors:
-#ifndef PIT_INITIALIZED
-#define PIT_INITIALIZED
 	PIT_GetDefaultConfig(&pit_config);
 	PIT_Init(PIT, &pit_config);
-#endif
 	PIT_SetTimerPeriod(PIT, TOUCH_PIT_CHNL, TOUCH_DELAY);
 	PIT_EnableInterrupts(PIT, TOUCH_PIT_CHNL, kPIT_TimerInterruptEnable);
 	PIT_callback_init(TOUCH_PIT_CHNL, Touch_debounce);

@@ -11,7 +11,6 @@
 
 int main(void)
 {
-
 	bicyclye_init_modules();
 
 	while (true)
