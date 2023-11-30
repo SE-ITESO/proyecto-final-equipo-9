@@ -161,6 +161,8 @@ void bicycle_update_FSM(void)
 				RTC_mod_write_mem(&mem_data_dist);
 				RTC_mod_write_mem(&mem_data_speed);
 
+				g_distance = 0;
+
 				bicycle_record_screen();
 				display_record(saved_dist, saved_speed);
 
@@ -266,7 +268,7 @@ void display_record(uint32_t distance, uint32_t speed)
 	//distance values:
 	g_distance_data[0] = ((distance / 1000) % 10) + 0x30;
 	g_distance_data[1] = ((distance / 100)  % 10) + 0x30;
-	g_distance_data[1] = ((distance / 10)   % 10) + 0x30;
+	g_distance_data[2] = ((distance / 10)   % 10) + 0x30;
 	g_distance_data[3] = (distance % 10) + 0x30;
 
 	distance_data.message = g_distance_data;

@@ -7,6 +7,8 @@
 
 #include "freq.h"
 
+static void no_gpio_pit_callback(void);
+
 uint8_t g_flag = 0;
 uint32_t g_pit_period = 0;
 
@@ -19,7 +21,7 @@ void capture_values(uint32_t flags)
 	}
 	else
 	{
-		g_pit_period = 0xFFFFFFFF - PIT_GetCurrentTimerCount(PIT, kPIT_Chnl_3);
+		g_pit_period = USEC_TO_COUNT(5000000U,21000000U) - PIT_GetCurrentTimerCount(PIT, kPIT_Chnl_3);
 		PIT_StopTimer(PIT, kPIT_Chnl_3);
 		PIT_StartTimer(PIT, kPIT_Chnl_3);
 	}
@@ -28,7 +30,10 @@ void capture_values(uint32_t flags)
 void init_freq(void)
 {
 	// PIT config:
-	PIT_SetTimerPeriod(PIT, kPIT_Chnl_3, 0xFFFFFFFF);
+	PIT_SetTimerPeriod(PIT, kPIT_Chnl_3, USEC_TO_COUNT(5000000U,21000000U));
+	PIT_EnableInterrupts(PIT, kPIT_Chnl_3, kPIT_TimerInterruptEnable);
+	PIT_callback_init(kPIT_Chnl_3, no_gpio_pit_callback);
+	NVIC_enable_interrupt_and_priotity(PIT_CH3_IRQ, PRIORITY_4);
 
 	CLOCK_EnableClock(kCLOCK_PortC);
 	const port_pin_config_t input_config = {
@@ -63,4 +68,11 @@ float freq_get_freq(void)
 	}
 
 	return frequency;
+}
+
+static void no_gpio_pit_callback(void)
+{
+	PIT_StopTimer(PIT, kPIT_Chnl_3);
+	g_pit_period = 0;
+	g_flag = 0;
 }
