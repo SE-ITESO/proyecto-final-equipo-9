@@ -1,8 +1,11 @@
 /*
- * ftm_speed.h
+ * @file     ftm_speed.h
  *
- *  Created on: 28 nov 2023
- *      Author: JVillanueva
+ * @Authors  Juan Pablo Villanueva
+ *           Jose Angel Gonzalez
+ *
+ * @brief    Header file for physical velocimeter functions. PWM duty cycle
+ *           is determined depending on speed entered.
  */
 
 #ifndef FTM_SPEED_H_
