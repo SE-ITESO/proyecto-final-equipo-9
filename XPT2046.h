@@ -51,7 +51,7 @@
 #define TOUCH_CPOL  kDSPI_ClockPolarityActiveHigh
 #define TOUCH_CPHA  kDSPI_ClockPhaseFirstEdge
 
-#define TOUCH_PIT_CHNL kPIT_Chnl_0
+#define TOUCH_PIT_CHNL kPIT_Chnl_1
 #define TOUCH_DELAY    USEC_TO_COUNT(5000U, 21000000U)
 #define TOUCH_PIT_IRQ  PIT_CH0_IRQ
 #define TOUCH_PIT_PRIO PRIORITY_6

@@ -117,7 +117,7 @@ void MPU6050_init(void)
 	// PIT config:
 	pit_config_t pit_config;
 	PIT_GetDefaultConfig(&pit_config);
-	PIT_Init(PIT, &pit_config);
+	//PIT_Init(PIT, &pit_config);
 	PIT_SetTimerPeriod(PIT, kPIT_Chnl_0, USEC_TO_COUNT(1000, 21000000));
 
 	// PIT interrupt config:

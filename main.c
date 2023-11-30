@@ -7,34 +7,16 @@
  * @brief    Application entry point.
  */
 
-//TODO: Include driver libraries
-
-#include "graphic_interface.h"
 #include "bicycle.h"
 
 int main(void)
 {
-	// TODO: execute configuration functions
 
-	Coordinate_t pressed_spot = {0};
+	bicyclye_init_modules();
 
-	button_t boton1 = {
-			{"SIMON", 5},
-			160, 120,
-			78, 32
-	};
-	uint32_t counter = 0;
-
-	GUI_init();
-	bicycle_main_screen();
-
-    while(1)
-    {
-    	// TODO: Execute periodic functions
-    	if (GUI_button_pressed(&boton1))
-    	{
-    		counter++;
-    	}
-    }
+	while (true)
+	{
+		bicycle_update_FSM();
+	}
     return 0 ;
 }
