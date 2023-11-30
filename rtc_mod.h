@@ -22,13 +22,13 @@
  * ******************************************************************
  */
 
-#define I2C_CLK_GATING_RTC        kCLOCK_PortB
-#define I2C_PORT_RTC             PORTB
-#define I2C_PIN_MUX_RTC           kPORT_MuxAlt2
+#define I2C_CLK_GATING_RTC    kCLOCK_PortB
+#define I2C_PORT_RTC          PORTB
+#define I2C_PIN_MUX_RTC       kPORT_MuxAlt2
 #define MODULE_I2C            I2C0
 
-#define SCL_PIN_RTC              2U
-#define SDA_PIN_RTC               3U
+#define SCL_PIN_RTC           2U
+#define SDA_PIN_RTC           3U
 
 #define MOD_24_HRS            ~0x40
 #define I2C_MASTER_CLK_FREQ   CLOCK_GetFreq(kCLOCK_BusClk)
