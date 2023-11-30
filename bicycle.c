@@ -146,7 +146,7 @@ void bicycle_update_FSM(void)
 		case DataState:
 			if(GUI_button_pressed(&g_record_btn))
 			{
-				g_avg_speed = g_distance / (g_avg_samples);
+				g_avg_speed = g_current_speed;
 
 				g_current_state = RecordState;
 				Display_fill_screen(bg_color);
@@ -175,7 +175,7 @@ void bicycle_update_FSM(void)
 
 				g_avg_samples++;
 
-				g_inclination = MPU6050_get_angle();
+				g_inclination = MPU6050_get_angle() - 55;
 
 				g_distance += (g_prev_speed / 3.6f);
 
