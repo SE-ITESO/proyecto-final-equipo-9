@@ -71,31 +71,35 @@ button_t g_sesion_btn = {
  */
 
 /*
- *
+ * @brief: Configuration of all modules used, related to the screen (display
+ *         and touch module), external devices (gyroscope, memory and Hall
+ *         effect sensor), and a PIT used to update measures.
  */
 void bicyclye_init_modules(void)
 {
 	GUI_init();
 	init_freq();
 	MPU6050_init();
+	ftm_speed_init();
 
 	bicycle_main_screen();
 
 	GUI_create_button(&g_record_btn);
 
 	// PIT config:
-	PIT_SetTimerPeriod(PIT, kPIT_Chnl_2, USEC_TO_COUNT(500000U, 21000000));
+	PIT_SetTimerPeriod(PIT, UPDATE_PIT_CHNL, USEC_TO_COUNT(500000U, 21000000));
 	// PIT interrupt config:
-	PIT_EnableInterrupts(PIT, kPIT_Chnl_2, kPIT_TimerInterruptEnable);
-	PIT_callback_init(kPIT_Chnl_2, data_refresh_callback);
-	NVIC_enable_interrupt_and_priotity(PIT_CH2_IRQ, PRIORITY_1);
+	PIT_EnableInterrupts(PIT, UPDATE_PIT_CHNL, kPIT_TimerInterruptEnable);
+	PIT_callback_init(UPDATE_PIT_CHNL, data_refresh_callback);
+	NVIC_enable_interrupt_and_priotity(UPDATE_PIT_IRQ, PRIORITY_1);
 
-	PIT_StartTimer(PIT, kPIT_Chnl_2);
+	PIT_StartTimer(PIT, UPDATE_PIT_CHNL);
 }
 
 
 /*
- *
+ * @brief: Writes on screen the text that doesn't change in the real-time
+ *         measuring screen: title and description text.
  */
 void bicycle_main_screen(void)
 {
@@ -111,7 +115,8 @@ void bicycle_main_screen(void)
 
 
 /*
- *
+ * @brief: Writes on screen the text that doesn't change in the registered
+ *         measures screen: title and description text.
  */
 void bicycle_record_screen(void)
 {
@@ -125,7 +130,8 @@ void bicycle_record_screen(void)
 
 
 /*
- *
+ * @brief: checks if the touch screen has been pressed in order to
+ *         change between states, and which information to display.
  */
 void bicycle_update_FSM(void)
 {
@@ -179,6 +185,8 @@ void bicycle_update_FSM(void)
 
 				g_distance += (g_prev_speed / 3.6f);
 
+				ftm_speed_update(g_current_speed);
+
 				display_data();
 				g_data_refresh = false;
 			}
@@ -198,7 +206,9 @@ void bicycle_update_FSM(void)
 
 
 /*
- *
+ * @brief: Displays the current measures in the display, decoding int and
+ *         float values into characters, and using each measure's corresponding
+ *         coordinates.
  */
 void display_data(void)
 {
@@ -209,71 +219,73 @@ void display_data(void)
 	uint32_t spd_val = (uint32_t)(g_current_speed * 10);
 	uint32_t inc_val = (uint32_t)(g_inclination * 10);
 
-
-	//Speed values:
+	//Speed value decoding:
 	g_speed_data[0] = (spd_val / 100) + 0x30;
 	g_speed_data[1] = ((spd_val / 10) % 10)  + 0x30;
 	g_speed_data[3] = (spd_val % 10) + 0x30;
 
+	// Displaying speed:
 	speed_data.message = g_speed_data;
 	speed_data.msg_size = 9;
-
 	GUI_set_cursor(162,40);
 	GUI_write_string(&speed_data);
 
-	//inclination values:
+	// Inclination value decoding:
 	g_angle_data[0] = (inc_val / 100) + 0x30;
 	g_angle_data[1] = ((inc_val / 10) % 10)  + 0x30;
 	g_angle_data[3] = (inc_val % 10) + 0x30;
 
+	// Displaying inclination:
 	angle_data.message = g_angle_data;
 	angle_data.msg_size = 5;
-
 	GUI_set_cursor(162,106);
 	GUI_write_string(&angle_data);
 
-	//distance values:
+	// Distance value decoding:
 	g_distance_data[0] = ((g_distance / 1000) % 10) + 0x30;
 	g_distance_data[1] = ((g_distance / 100)  % 10) + 0x30;
 	g_distance_data[2] = ((g_distance / 10)   % 10) + 0x30;
 	g_distance_data[3] = (g_distance % 10) + 0x30;
 
+
+	// Displaying of distance value:
 	distance_data.message = g_distance_data;
 	distance_data.msg_size = 6;
-
 	GUI_set_cursor(162,172);
 	GUI_write_string(&distance_data);
 }
 
 
 /*
- *
+ * @brief: Displays the recorded historic measures of average speed and total
+ *         distance traveled, decoding numbers into ASCII and displaying
+ *         each value in its corresponding screen position.
  */
 void display_record(uint32_t distance, uint32_t speed)
 {
 	screen_message_t speed_data = {0};
 	screen_message_t distance_data = {0};
 
-	// Speed values:
+	// Speed value decoding:
 	g_speed_data[0] = (speed / 10) + 0x30;
 	g_speed_data[1] = (speed % 10) + 0x30;
 	g_speed_data[3] = '0';
 
+	// Displaying of speed value:
 	speed_data.message = g_speed_data;
 	speed_data.msg_size = 9;
-
 	GUI_set_cursor(10,126);
 	GUI_write_string(&speed_data);
 
-	//distance values:
+	// Distance value decoding:
 	g_distance_data[0] = ((distance / 1000) % 10) + 0x30;
 	g_distance_data[1] = ((distance / 100)  % 10) + 0x30;
 	g_distance_data[2] = ((distance / 10)   % 10) + 0x30;
 	g_distance_data[3] = (distance % 10) + 0x30;
 
+	// Distance value displaying:
 	distance_data.message = g_distance_data;
 	distance_data.msg_size = 6;
-
 	GUI_set_cursor(10,60);
 	GUI_write_string(&distance_data);
 }
