@@ -27,13 +27,19 @@ screen_message_t g_speed_str = {g_speed_msg, 6};
 screen_message_t g_angle_str = {g_angle_msg, 12};
 screen_message_t g_distance_str = {g_distance_msg, 9};
 
-
+mem_data_t g_record = {0};
 
 float g_inclination = 0.0;
 float g_current_speed = 0.0;
 float g_prev_speed = 0.0;
 uint32_t g_distance    = 0.0;
-uint32_t g_freq      = 0;
+float g_freq      = 0;
+
+button_t g_button = {
+		{"RECORD", 6},
+		180, 200,
+		96, 32
+};
 
 void data_refresh(void)
 {
@@ -43,16 +49,18 @@ void data_refresh(void)
 void bicyclye_init_modules(void)
 {
 	GUI_init();
-	ftm_freq_init();
+	init_freq();
 	MPU6050_init();
 
 	bicycle_main_screen();
+
+	GUI_create_button(&g_button);
 
 	// PIT config:
 	pit_config_t pit_config;
 	PIT_GetDefaultConfig(&pit_config);
 	PIT_Init(PIT, &pit_config);
-	PIT_SetTimerPeriod(PIT, kPIT_Chnl_2, USEC_TO_COUNT(1000, 21000000));
+	PIT_SetTimerPeriod(PIT, kPIT_Chnl_2, USEC_TO_COUNT(500000U, 21000000));
 
 	// PIT interrupt config:
 	PIT_EnableInterrupts(PIT, kPIT_Chnl_2, kPIT_TimerInterruptEnable);
@@ -60,6 +68,8 @@ void bicyclye_init_modules(void)
 	NVIC_enable_interrupt_and_priotity(PIT_CH2_IRQ, PRIORITY_1);
 
 	PIT_StartTimer(PIT, kPIT_Chnl_2);
+
+
 
 }
 
@@ -70,34 +80,40 @@ void bicycle_main_screen(void)
 	GUI_set_cursor(10,40);
 	GUI_write_string(&g_speed_str);
 	GUI_set_cursor(10,106);
-	GUI_write_string(&g_distance_str);
-	GUI_set_cursor(10,172);
 	GUI_write_string(&g_angle_str);
+	GUI_set_cursor(10,172);
+	GUI_write_string(&g_distance_str);
 }
 
 
 
 void bicycle_update_FSM(void)
 {
+
 	switch (g_current_state)
 	{
 		case DataState:
+			if(GUI_button_pressed(&g_button))
+			{
+				g_current_state = RecordState;
+
+			}
 			if(g_data_refresh)
 			{
-				g_freq = ftm_freq_get_freq();
-				g_prev_speed = g_current_state;
+				g_freq = freq_get_freq();
+				g_prev_speed = g_current_speed;
 				g_current_speed = bicycle_calculate_speed(g_freq);
 				g_inclination = MPU6050_get_angle();
-				g_distance = bicycle_calculate_distance(g_current_speed);
+				//g_distance = bicycle_calculate_distance(g_current_speed);
 
 				display_data();
+				g_data_refresh = 0;
 			}
-
-
-
 		break;
 
 		case RecordState:
+
+
 
 		break;
 
@@ -122,7 +138,7 @@ void display_data(void)
 	speed_data.message = g_speed_data;
 	speed_data.msg_size = 9;
 
-	GUI_set_cursor(60,40);
+	GUI_set_cursor(150,40);
 	GUI_write_string(&speed_data);
 
 	//inclination values:
@@ -133,7 +149,7 @@ void display_data(void)
 	angle_data.message = g_angle_data;
 	angle_data.msg_size = 9;
 
-	GUI_set_cursor(60,106);
+	GUI_set_cursor(150,106);
 	GUI_write_string(&angle_data);
 
 	//distance values:
@@ -144,11 +160,11 @@ void display_data(void)
 	distance_data.message = g_distance_data;
 	distance_data.msg_size = 9;
 
-	GUI_set_cursor(60,172);
+	GUI_set_cursor(150,172);
 	GUI_write_string(&distance_data);
 }
 
-float bicycle_calculate_speed(uint32_t freq)
+float bicycle_calculate_speed(float freq)
 {
 	float speed = 0.0f;
 
@@ -158,8 +174,9 @@ float bicycle_calculate_speed(uint32_t freq)
 
 	return speed;
 }
-
+/*
 uint32_t bicycle_calculate_distance(float speed)
 {
 
 }
+*/

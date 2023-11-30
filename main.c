@@ -14,33 +14,13 @@
 
 int main(void)
 {
-	// TODO: execute configuration functions
 
-	Coordinate_t pressed_spot = {0};
 
-	button_t boton1 = {
-			{"SIMON", 5},
-			160, 120,
-			78, 32
-	};
-	uint32_t counter = 0;
+	bicyclye_init_modules();
 
-	GUI_init();
-	bicycle_main_screen();
-
-    while(1)
-    {
-    	// TODO: Execute periodic functions
-    	if (GUI_button_pressed(&boton1))
-    	{
-    		counter++;
-    	}
-    	else if (Touch_pressed())
-    	{
-    		Touch_clear_irq_flag();
-    		pressed_spot = Touch_get_coordinates();
-    		counter++;
-    	}
-    }
+	while(1)
+	{
+		bicycle_update_FSM();
+	}
     return 0 ;
 }
